@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.Semaphore;
 
 @Service
 public class FileStorageServiceImp implements FileStorageService {
@@ -19,6 +20,7 @@ public class FileStorageServiceImp implements FileStorageService {
     @Value("${path.upload.file}")
     private String folderRoot;
     private Path root;
+    private final Semaphore semaphore = new Semaphore(1);
     @Override
     public boolean uploadFile(MultipartFile file) {
         boolean isSuccess = false;
@@ -36,7 +38,8 @@ public class FileStorageServiceImp implements FileStorageService {
     }
 
     @Override
-    public Resource loadFile(String filename) {
+    public Resource loadFile(String filename) throws InterruptedException {
+        semaphore.acquire();
         try {
             root = Paths.get(folderRoot).resolve(filename);
             Resource resource = new UrlResource(root.toUri());
@@ -48,6 +51,8 @@ public class FileStorageServiceImp implements FileStorageService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
+        }finally {
+            semaphore.release();
         }
     }
 }

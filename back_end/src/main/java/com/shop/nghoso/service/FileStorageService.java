@@ -5,5 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileStorageService {
     boolean uploadFile(MultipartFile file);
-    Resource loadFile(String filename);
+    Resource loadFile(String filename) throws InterruptedException;
 }
